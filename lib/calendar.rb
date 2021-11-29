@@ -1,14 +1,21 @@
 require 'date'
-
 class Calendar
+
+  WORK_DAY_LIMIT = 20
+
   class << self
-    # とりあえず指定日を入れる
     def work_definition(workers, year ,month)
       calendar = Calendar.new
       calendar_hash = calendar.make_calendar(year, month)
       workers.each do |worker|
+        working_day = [*1..calendar_hash.keys.size].shuffle
         worker.rest_days.each do |rest_day|
-          calendar_key = sprintf("%04d-%02d-%02d", year, month, rest_day)
+          # 指定した休日を除く
+          working_day.reject! { |w| w.to_i == rest_day.to_i }
+        end
+        working_day = working_day.slice(0, WORK_DAY_LIMIT)
+        working_day.each do |work|
+          calendar_key = sprintf("%04d-%02d-%02d", year, month, work)
           calendar_hash[calendar_key][:names] << worker.name
           calendar_hash[calendar_key][:count] += 1
         end
